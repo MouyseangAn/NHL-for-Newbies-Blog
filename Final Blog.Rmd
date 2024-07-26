@@ -1,0 +1,118 @@
+---
+title: "From Newbie to Know-it-all: The Hockey Game"
+output:
+  html_document: default
+  pdf_document: default
+date: "2024-06-10"
+---
+
+Ice hockey may seem challenging to watch if you are not already familiar with the rules. The hockey is originated from England in the 19th-century and further developed in Canada, this sport has grown increasingly popular in countries such as the United States, Russia, and Northern Europe (Martel, 2019). The purpose of this blog is to help newbie understand the basic rules of ice hockey. We will explore how the game is played and use statistical analysis in R. Our goal is to make you feel comfortable and understand with the sport’s essentials, making it easier for you to enjoy and appreciate the game. Here are a few questions that we consider helpful for you to understand more about the game using R code for analysis:
+
+-   How do different performance such as goals, assists, and plus/minus correlate with a player's total points?
+
+-   How significant is the contribution of power play goals to overall team success?
+
+-   Can goalie performance based on save percentage and goal against average predict team winning?
+
+#### **Understanding Basic Rules:**
+
+Before we dive into our research questions, we will first explore and understand a few basic rules of the game. The basic rules you should know include the hockey rink, game duration, penalties, overtime, and faceoffs.
+
+![](images/Sport-Hockey-Simple-hockey-field-Template.png){width="703"}
+
+In each game, there will be six players from each team: one goalie, three forwards, and two defensemen. The hockey rink has three zones: the Defensive Zone, where a team defends its goal; the Neutral Zone, the area between two blue lines; and the Attacking Zone, also known as the Offensive Zone, where the team attempts to score. Game duration is divided into three periods of 20 minutes each. However, if the score is tied at the end of regulation time, the game will continue into Overtime to determine a winner. Penalties are given for rule violations and result in a player having to sit in the penalty box, leaving the team shorthanded. There are minor penalties, which usually last two minutes, major penalties, which last five minutes, and misconduct penalties, which last for ten minutes. Lastly, faceoffs are used to start play at the beginning of each period and to resume play after it has been stopped by the referees. Players face each other and compete for control of the puck after it is dropped by an official.
+
+#### **Regular Season**
+
+To understand the analysis using R statistics, we need to familiarize ourselves with each variable before using the data from the Hockey Reference for the Colorado Avalanche Team from the 2022-2023 season. The data for the regular season includes variables such as:
+
+|                                   |                                  |                           |
+|-----------------------------------|----------------------------------|---------------------------|
+| **GP:** Games Played              | **SH:** Short Handed Goals       | **BLK:** Blocks           |
+| **G:** Goals                      | **S:** Shots on Goal             | **HIT:** Hits             |
+| **A:** Assists                    | **S%:** Shooting Percentage      | **FOW:** Faceoff Wins     |
+| **PTS:** Points                   | **TOI**: Time on Ice             | **FOL:** Faceoff Losses   |
+| **EV:** Even Strengths Goals      | **OPS:** Offensive Points Shares | **Player:** Player's Name |
+| **PP**: Power Play Goals          | **DPS:** Defensive Points Shares | **Age:** Age of Players   |
+| **ASSIST PP:** Power Play Assists | **PS**: Point Shares             | **Plus/Minus**            |
+
+Below are the summary statistics for the variables that we will use to analyze the questions:
+
+```{r}
+library(tidyverse)
+library(dplyr)
+nhl_regular <- read.csv("NHL_Colorado_2022_2023.csv", stringsAsFactors = FALSE)
+summary(nhl_regular) 
+
+```
+
+From the summary statistics, we can observe an average goal score of 6.37, which is considered high and indicates that the Colorado Avalanche players have strong offensive capabilities. The average assists per player stand at 10.90, showing the effective teamwork and cooperation. Additionally, the average points per player amount to 17.27, demonstrating a significant impact on the game. The average for power play goals is 1.48, and the average plus/minus rating is 3.95, a positive value indicating that the team tends to outscore their opponents. Lastly, the average age of the players is 27.41, reflecting the average age of good experience of the players within the team.
+
+#### **Correlation**
+
+We believe it would be beneficial to perform a correlation analysis to better understand the relationships between different performance indicators such as goals, assists, and plus/minus, which impact a player's points.
+
+```{r}
+correlation <- nhl_regular %>% 
+  select(G, A, Plus.Minus, PTS) %>% 
+  cor(use = "complete.obs")
+print(correlation)
+```
+
+![](Correlation)
+
+As we can see from the correlation statistics, goals and assists have a very high positive correlation with points, indicating that these are the most significant contributors to a player's points. The positive relationship with plus/minus on points suggests that players who perform well offensively, in terms of scoring and assisting, are more likely to accumulate more points. This analysis will help newcomers understand what factors contribute to a player's points while watching the games.
+
+#### **Power Play Goals vs. Points**
+
+We want to examine how significant power play goals contribute to overall team success. This analysis will help you understand the opportunities and chances for the team to win against their opponents when the team scores power play goals.
+
+```{r}
+ggplot(nhl_regular, aes(x = PP, y = PTS)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm') + 
+  labs(title = 'Relationship between Power Play Goals and Points', x ='Power Play Goal', y = 'Points')
+
+```
+
+As we can see in the visualization scatter plot, the relationship between Power Play Goals and Points shows a positive linear relationship with an upward regression line, indicating that power play goals significantly contribute to a player's points. Overall, it shows that Power Play Goals are a crucial contribution to the team's success, as they help the team gain an edge over their opponents.
+
+#### **Goalies**
+
+The data for Colorado Avalanche's goalies include variables such as:
+
+|                                             |                               |                                           |
+|---------------------------------------------|-------------------------------|-------------------------------------------|
+| **W:** Wins                                 | **SA:** Shot Against          | **SO:** Shutouts                          |
+| **L:** Losses                               | **SV:** Saves                 | **adjGAA:** Adjusted Goal Against Average |
+| **T/O:** Tied plus Overtime/Shootout Losses | **SV%:** Save Percentages     | **GPS:** Goalies Point Share              |
+| **GA:** Goal Against                        | **GAA:** Goal Against Average | **GP:** Games Played                      |
+
+Below are the summary statistic of the Colorado Avalanche Goalies:
+
+```{r}
+nhl_goalies <-read.csv("NHL_Colorado_Goalies.csv", stringsAsFactors = FALSE)
+
+summary(nhl_goalies)
+```
+
+We want to analyze whether the goalies' performance, such as save percentages and goals against average, can predict the team's winning outcomes. Furthermore, we will use a linear regression model to predict wins based on both of these predictors.
+
+```{r}
+lm <- lm(W ~ SV. + GAA, data = nhl_goalies)
+summary(lm)
+```
+
+After running the linear regression model, we can see that the p-values for save percentages and GAA are above 0.05, which indicates no significant effect on the number of wins. The negative adjusted R-squared shows that the model does not perform well, this might be due to the small size of the data set that we have.
+
+#### **Conclusion**
+
+In conclusion, player performance such as goals, assists, and power play goals are important for understanding the game and how individual players contribute to team success. However, our analysis of goalie performance such as save percentages and goals against average, did not significantly impact predictions of wins. We hope this blog helps you understand the fundamentals of ice hockey, to help your enjoyment and understand of the game’s rules.
+
+#### References:
+
+Data: <https://www.hockey-reference.com/teams/COL/2023.html>
+
+image:<https://www.conceptdraw.com/How-To-Guide/ice-hockey-rink-diagram>
+
+Martel, J.-P. (2019, February 6). *Origins of ice hockey*. The Canadian Encyclopedia. <https://www.thecanadianencyclopedia.ca/en/article/origins-of-ice-hockey>
